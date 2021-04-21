@@ -68,7 +68,7 @@ Here is a schema of the whole process:
 
 ![Stabilization Flow Dragram](../attachments/xxxx-stabilization-flow.jpg)
 
-## Limitations of experimental code
+## Differences of experimental code
 
 In order to execute experimental code you need to do one of the following:
 - Enable in the gradle settings the feature:
@@ -86,6 +86,12 @@ public class UseClass {
 - If a library you use depends on an experimental feature, you are allowed to use the exposed API surface without enabling the experimental feature. So you have to enable the experimental feature yourself if you want to use them.
 
 - Enabling features in a library / mod (both global and class specific) will automaticly add a tag to the metadata, in a separate file, called `experimental.json`. This file is not present if there is no experimental features used, and a jar depending on another library (JiJ) inherits the `experimental.json` file.
+
+- Experimental code are not subject to deprecation policies, we do reserve the right to modify or remove any APIs in features without previous notice.
+  
+- Experimental features can be removed at any time in one of the following ways:
+  - The writer of the RFC supersedes the experimental feature with another one, and after asking the working group for removal
+  - The working group majority votes the removal of a feature in a meeting, after providing reasons for the removal
 
 ## `experimental.json` file
 The experimental.json file only contains a JSON array with the identifiers like the following:
@@ -158,13 +164,10 @@ This system is currently used by [rust](https://github.com/rust-lang), and is wo
 
 # Unresolved Questions
 
-- What should be resolved before this RFC gets merged?
-- What should be resolved while implementing this RFC?
-- What unresolved questions do you consider out of scope for this RFC, that
-  could be addressed in the future?
+- This RFC depends mainly on the gradle plugin system, with the compile time checking of features. Until then, this RFC could stay as unimplemented until then.
+- How to do a file level feature selection? Attributes doesn't work on there.
 
 
 # Expected Response
 
-How do might the wider community respond to this change? Who will be affected
-by it and how? Who has advocated for this change? Who has advocated against it?
+This change would be welcome, as it allows to use new features and give feedback to it before it's too late, and allows to bypass all deprecation policies
