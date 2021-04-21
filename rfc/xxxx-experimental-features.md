@@ -166,8 +166,8 @@ This system is currently used by [rust](https://github.com/rust-lang), and is wo
 
 - This RFC depends mainly on the gradle plugin system, with the compile time checking of features. Until then, this RFC could stay as unimplemented until then.
 - How to do a file level feature selection? Attributes doesn't work on there.
-
+- Do we add a smaller deprecation policy on the most used features?
 
 # Expected Response
 
-This change would be welcome, as it allows to use new features and give feedback to it before it's too late, and allows to bypass all deprecation policies
+This change would be welcome, as it allows to use new features and give feedback to it before it's too late, as it allows to bypass all deprecation policies.
