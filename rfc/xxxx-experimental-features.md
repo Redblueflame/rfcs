@@ -1,14 +1,3 @@
-## Notes
-Should use custom attributes
-
-Has to be checked in compiler stage
-
-Has to be enabled in both top of files and in project settings
-
-## Examples
-Networking api could be a useful example
-Major refactor of the ressource loader (Needs to disable a standard & active feature to work, has to take that into account.)
-
 # Summary
 
 This RFC aims to add a step in the lifecyle of any API or module, called `experimental phase`. It explains in more details the broad description present in the [RFC 9](https://github.com/QuiltMC/rfcs/pull/9).
@@ -48,7 +37,7 @@ A closed issue is an issue that either resolved or dismissed due to one of the f
 - Neglected issue (An issue that did not get a response for at least 14 days after a question was asked)
 - TODO: Add more closed reasons.
 
-## General system
+## Lifetime of experimental code
 
 A module or API is considered experimental once they got merged in the main repository, and stays as one until its stabilization.
 
@@ -70,16 +59,49 @@ Blocking issues:
 }
 ```
 
-Once every TODO and blocking issue is closed, the feature can be added to the next related working group meeting, where the team will vote on the stabilization of the feature. If the stabilization is refused, the team has to provide reasoning behinf the choice
+Once every TODO and blocking issue is closed, the feature can be added to the next related working group meeting, where the team will vote on the stabilization of the feature. If the stabilization is refused, the team has to provide reasoning behind the choice, in addition to TODOs required to send the stabilization request again.
 
-In order to use experimental code, you have to switch a *toggle*, if not, the compiler should return an error including a small explaination into how to enable the *toggle*.
+If the stabilization is accepted, the PR enters a grace period of (7) days, and if no new blocking issue appears, the stabilization PR can be merged.
 
 
+Here is a schema of the whole process:
+
+![Stabilization Flow Dragram](../attachments/xxxx-stabilization-flow.jpg)
+
+## Limitations of experimental code
+
+In order to execute experimental code you need to do one of the following:
+- Enable in the gradle settings the feature:
+```gradle
+// In the quilt build section
+enableExperimentalFeatures 'xxx', 'yyy', 'zzz'
+```
+- Enable the feature for the current class using the following syntax
+```java
+@EnableExperimental("xxx", "yyy")
+public class UseClass {
+...
+```
+
+- If a library you use depends on an experimental feature, you are allowed to use the exposed API surface without enabling the experimental feature. So you have to enable the experimental feature yourself if you want to use them.
+
+- Enabling features in a library / mod (both global and class specific) will automaticly add a tag to the metadata, in a separate file, called `experimental.json`. This file is not present if there is no experimental features used, and a jar depending on another library (JiJ) inherits the `experimental.json` file.
+
+## `experimental.json` file
+The experimental.json file only contains a JSON array with the identifiers like the following:
+```json
+[
+    "xxx",
+    "yyy"
+]
+```
+
+This file can be used on quilt-loader to switch out a library at runtime, or do specific changes ahead of time.
 
 ## Modules
 As defined in RFC 9, a module is the lowest level split of the standard level library, independant of each other.
 
-### Limitations:
+### Changes specific to modules:
 
 - A module in experimental state does not have any limitation, as long as it does not break any stable component **while the toggle is disabled**.
 
@@ -87,31 +109,51 @@ As defined in RFC 9, a module is the lowest level split of the standard level li
 
 - There is no minimal time for the experimental state, but all issues raised on the module has to be closed (see definition)
 
-### Process:
-On its first implementation, the module has to contain a configuration attribute in the build.gradle file marking itself as experimental.
+### Implementation
 
+*Note: This implementation example is only for modules that uses the normalized toggles system, for non normalized toggles, use the method chosen.*
 
+For experimental modules, the marking as experimental should be possible to do using the build.gradle file, by adding the following build parameter:
+```gradle
+// In the quilt build section
+experimentalModule "xxx" // The feature name
+```
+On the gradle build side, we should be able to add another file in the built jar, named experimental, and containing the the feature name inside it.
+
+This file will be read by the gradle plugin during imprt, and if the file is present, check if the feature is enabled, and if it isn't throw an error.
+
+## APIs
+APIs are smaller parts, that can be as low as a function or interface.
+### Changes specific to APIs:
+- APIs has to use the normalized toggle system.
+
+- Experimental toggles cannot deprecate other functions until they are stabilized.
+
+- All APIs has to be in the experimental status for at least one (1) month.
+
+### Implementation
+The implementation for a library developer is by adding an annotation to the experimental classes & functions, like the following:
+```java
+@ApiStatus.Experimental // Used for warnings directly in the IDE
+@QuiltExperimental("xxx") // where "xxx" is the feature attached to the code
+```
+
+In the gradle plugin, as an additionnal compilation step, if it detects an experimental function is being called and the feature is not enabled, send an error explaining how to enable the feature.
 
 # Drawbacks
 
-Why should we not do this?
+While the experimental system allows to ensure that all stabilized code had enough chances to be tested, it also lengtens the process of getting a new feature directly available to everyone without being opt-in.
 
 
 # Rationale and Alternatives
 
-- Why is this the best possible design?
-- What other designs are possible and why should we choose this one instead?
-- What other designs have benefits over this one? Why should we choose an
-  alternative instead?
-- What is the impact of not doing this?
+- This is an already used process, that allows us to be sure that system actually works in the wild
+- This feature allows to easily test features before they get stabilized for modders, and getting their work field tested for library developers.
 
 
 # Prior Art
 
-If this has been done before by some other project, explain it here. This could
-be positive or negative. Discuss what worked well for them and what didn't.
-
-There may not always be prior art, and that's fine.
+This system is currently used by [rust](https://github.com/rust-lang), and is working pretty well. The only problem here is the requirement to have nightly to enable feature flags, even if the code itself is there. This is why the requirement was removed in this RFC.
 
 
 # Unresolved Questions
