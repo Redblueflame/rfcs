@@ -37,6 +37,17 @@ A closed issue is an issue that either resolved or dismissed due to one of the f
 - Neglected issue (An issue that did not get a response for at least 14 days after a question was asked)
 - TODO: Add more closed reasons.
 
+### **Feature**
+A feature in the current context is an indentifier following guidelines:
+- Only contains lowercase alphanumeric character, and hyphens
+- Is unique among other features
+- Explains in a short form the format of the feature
+- As a guideline, a feature should not be longer than 32 characters unless the feature name cannot be shorter without overlaps.
+
+A feature is the identifier used for experimental code, and is used to enable the features wanted.
+
+By convention, the feature name is the text after the identifier in the initial RFC's name.
+
 ## Lifetime of experimental code
 
 A module or API is considered experimental once it got merged in the main repository and stays as one until its stabilization.
@@ -145,6 +156,13 @@ The implementation for a library developer is by adding an annotation to the exp
 ```
 
 In the Gradle plugin, as an additional compilation step, if it detects an experimental function is being called and the feature is not enabled, send an error explaining how to enable the feature.
+An error could look like this:
+```
+ERROR at org.quiltmc.testing.main
+The feature `testing-feature` is marked as experimental.
+To use it, add the following settings to your build.gradle:
+enableExperimentalFeatures 'testing-feature'
+```
 
 # Drawbacks
 
@@ -171,3 +189,5 @@ This system is currently used by [rust](https://github.com/rust-lang) and is wor
 # Expected Response
 
 This change would be welcome, as it allows to use of new features and give feedback to it before it's too late, as it allows to bypass all deprecation policies.
+
+But as it also makes the process of making a new feature globally available, I do expect that there will need to be simplicications in the stabilization process.
